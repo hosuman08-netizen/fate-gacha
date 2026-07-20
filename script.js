@@ -161,7 +161,29 @@ function showCodex() {
   console.log('%c[Internal] Codex viewed → relic power +1 (secret)', 'color:#555');
 }
 
-const SHARE_URL = 'https://hosuman08-netizen.github.io/fate-gacha/';
+const SHARE_BASE = 'https://hosuman08-netizen.github.io/fate-gacha/';
+function fateKId() {
+  try {
+    var id = localStorage.getItem('fate_k_id');
+    if (!id) { id = 'f' + Math.random().toString(36).slice(2, 8); localStorage.setItem('fate_k_id', id); }
+    return id;
+  } catch (e) { return 'share'; }
+}
+function getFateShareUrl() {
+  return SHARE_BASE + '?utm_source=share&utm_medium=app&ref=' + encodeURIComponent(fateKId());
+}
+function captureFateKRef() {
+  try {
+    var q = new URLSearchParams(location.search || '');
+    var ref = q.get('ref');
+    if (!ref || ref === 'share') return;
+    if (ref === fateKId()) return;
+    if (!localStorage.getItem('fate_k_from')) {
+      localStorage.setItem('fate_k_from', ref);
+      if (window.legionTrack) try { legionTrack('k_link', { from: ref }); } catch (e) {}
+    }
+  } catch (e) {}
+}
 
 function offerSharePeak(r, score) {
   const peak = document.getElementById('sharePeak');
@@ -190,10 +212,11 @@ function shareFate() {
     localStorage.setItem('p22_fate_to_p20', JSON.stringify({ score: latest.score, rarity: latest.rarity, ts: Date.now() }));
     localStorage.setItem('niobe_k_fate', String((parseInt(localStorage.getItem('niobe_k_fate') || '0', 10) || 0) + 1));
   } catch (e) {}
-  const text = 'Fate Pull · ' + latest.rarity + ' (' + latest.score + ') 뽑았어요. 너도 한 번 뽑아봐 👀\n' + SHARE_URL + '\n#FatePull #운명';
+  const url = getFateShareUrl();
+  const text = 'Fate Pull · ' + latest.rarity + ' (' + latest.score + ') 뽑았어요. 너도 한 번 뽑아봐 👀\n' + url + '\n#FatePull #운명';
   if (window.legionTrack) try { legionTrack('share', { rarity: latest.rarity }); } catch (e) {}
   if (navigator.share) {
-    navigator.share({ title: 'Fate Pull', text: text, url: SHARE_URL }).catch(function () {
+    navigator.share({ title: 'Fate Pull', text: text, url: url }).catch(function () {
       if (navigator.clipboard) navigator.clipboard.writeText(text);
     });
   } else if (navigator.clipboard) {
@@ -233,6 +256,7 @@ function renderFateStreak() {
 }
 
 function init() {
+  captureFateKRef();
   updateFomo();
   renderFateStreak();
   showCodex();
