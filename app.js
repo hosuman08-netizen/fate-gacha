@@ -13,6 +13,7 @@
   }
   root.innerHTML='<div class="card"><p class="sub">확률 고지: L5% E15% R30% C50% · 가상 엔터</p><button id="go">운명 추출</button> <button class="sec" id="share">공유</button><div id="res" style="margin-top:14px"></div></div>';
   document.getElementById('go').onclick=pull;
+  if(!document.getElementById('ratesCopy')){var r=document.createElement('button');r.id='ratesCopy';r.className='sec';r.textContent='확률 고지 복사';r.onclick=function(){var text='Fate rates L5 E15 R30 C50 · fictional · https://hosuman08-netizen.github.io/fate-gacha/';if(navigator.clipboard)navigator.clipboard.writeText(text);};document.querySelector('.card').appendChild(r);}
   document.getElementById('share').onclick=function(){var t='Fate Pull · https://hosuman08-netizen.github.io/fate-gacha/';if(navigator.clipboard)navigator.clipboard.writeText(t);try{legionTrack('share_peak',{})}catch(e){}};
   try{legionTrack('session_start',{})}catch(e){}
 })();
