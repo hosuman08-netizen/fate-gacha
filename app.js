@@ -3,7 +3,7 @@
   var root=document.getElementById('app');
   var pity=+localStorage.getItem('fp_pity')||0;
   var pulls=+(localStorage.getItem('fp_pulls')||0);
-  var hist=JSON.parse(localStorage.getItem('fp_hist')||'[]');
+  var hist=JSON.parse(localStorage.getItem('fp_hist')||'[]'); var todayP=0; try{var td=JSON.parse(localStorage.getItem('fp_today')||'{}'); if(td.d===new Date().toDateString()) todayP=td.n||0;}catch(e){}
   var legends=+(localStorage.getItem('fp_legends')||0);
   function dayKey(off){
     var d=new Date(); d.setDate(d.getDate()+(off||0));
@@ -96,7 +96,7 @@
     }
     if(got[0]==='LEGEND'){legends++; localStorage.setItem('fp_legends',legends);}
     localStorage.setItem('fp_pity',pity);
-    pulls++; localStorage.setItem('fp_pulls',pulls);
+    pulls++; localStorage.setItem('fp_pulls',pulls); try{var td=JSON.parse(localStorage.getItem('fp_today')||'{}'); if(td.d!==new Date().toDateString()) td={d:new Date().toDateString(),n:0}; td.n=(td.n||0)+1; todayP=td.n; localStorage.setItem('fp_today',JSON.stringify(td));}catch(e){}
     hist.unshift(got[0]); hist=hist.slice(0,12); localStorage.setItem('fp_hist',JSON.stringify(hist));
     bumpToday(); bumpStreak();
     var peak=got[0]==='LEGEND'||got[0]==='EPIC';
