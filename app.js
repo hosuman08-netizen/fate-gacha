@@ -1,3 +1,6 @@
+
+/* LEGION_WAVE_14_today_counter */
+try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw_p22_fate_gac_today_counter')||'{}');if(_o.d!==_dk)_o={d:_dk,n:0};_o.n=(_o.n||0)+1;localStorage.setItem('lw_p22_fate_gac_today_counter',JSON.stringify(_o));}catch(e){}
 (function(){
   var rates=[['LEGEND',5,'#fbbf24'],['EPIC',15,'#c4b5fd'],['RARE',30,'#67e8f9'],['COMMON',50,'#94a3b8']];
   var root=document.getElementById('app');
