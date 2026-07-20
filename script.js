@@ -147,6 +147,19 @@ function showCodex() {
   console.log('%c[Internal] Codex viewed → relic power +1 (secret)', 'color:#555');
 }
 
+// 3H peak share fate
+function peakShareFate(){
+  try {
+    var k='fate_peak_'+new Date().toISOString().slice(0,10);
+    if (sessionStorage.getItem(k)) return;
+    sessionStorage.setItem(k,'1');
+    setTimeout(function(){
+      var b=document.querySelector('button.secondary, button[onclick*=shareFate]');
+      if (b) { b.style.boxShadow='0 0 0 2px #e8b98a'; b.textContent='📤 지금 공유하면 보너스'; }
+      if (window.legionTrack) legionTrack('peak_share_prompt',{});
+    }, 500);
+  } catch(e){}
+}
 function shareFate() {
   const codex = JSON.parse(localStorage.getItem(CODEX_KEY) || '[]');
   if (!codex.length) return alert('먼저 풀을 뽑아.');
@@ -172,3 +185,16 @@ function init() {
 init();
 // Legion beacon soft hooks (FULLPOWER DNA)
 (function(){try{if(window.legionTrack){window.legionTrack('app_boot',{});}}catch(e){}})();
+
+// 3H fate streak
+(function fateStreak3H(){
+  try {
+    var day=new Date().toISOString().slice(0,10);
+    var last=localStorage.getItem('fate_streak_day');
+    var n=parseInt(localStorage.getItem('fate_streak')||'0',10);
+    if(last!==day){ var y=new Date(Date.now()-864e5).toISOString().slice(0,10); n=(last===y)?n+1:1;
+      localStorage.setItem('fate_streak_day',day); localStorage.setItem('fate_streak',String(n)); }
+    var el=document.getElementById('fomo');
+    if(el && n>1) el.textContent = (el.textContent||'') + ' · 🔥'+n+'d';
+  } catch(e){}
+})();
