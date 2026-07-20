@@ -130,11 +130,35 @@ function doPull() {
     updateFomo();
     bumpFateStreak();
     offerSharePeak(r, score);
+    setTimeout(function () { try { showFateMoneyPipe(r, score); } catch (e) {} }, 700);
     if (window.legionTrack) try { legionTrack('activate', { kind: 'pull', rarity: r.name, score: score }); } catch (e) {}
 
     btn.disabled = false;
     btn.textContent = '다시 추출';
   }, 420);
+}
+
+/** 3H CRO cash hole · 엔터 트랙 (투자 아님) */
+function showFateMoneyPipe(r, score) {
+  var host = document.getElementById('result') || document.body;
+  var el = document.getElementById('moneyPipe');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'moneyPipe';
+    el.style.cssText = 'margin:12px 0;padding:12px;border:1px solid #c5a46e55;border-radius:12px;background:#16121c;text-align:center;font-size:13px';
+    host.appendChild(el);
+  }
+  var rare = r && (r.name === 'LEGEND' || r.name === 'EPIC');
+  el.innerHTML =
+    '<div style="color:#e0b552;font-weight:700;margin-bottom:6px">' + (rare ? '✨ 희귀 직후 — 더 깊게' : '💎 운명 더 깊게') + '</div>' +
+    '<p style="opacity:.8;font-size:12px;margin:0 0 8px">엔터테인먼트 · 확률 시뮬 · 운명 확정 아님</p>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">' +
+    '<a style="display:inline-block;padding:8px 12px;border-radius:10px;border:1px solid #c5a46e55;text-decoration:none;color:#ece8f1" href="mailto:hoyashi95@gmail.com?subject=%5BFate%5D%20%ED%9B%84%EC%9B%90">☕ 후원 문의</a>' +
+    '<button type="button" class="secondary" onclick="shareFate()">📤 공유 +1 풀</button>' +
+    '<a style="display:inline-block;padding:8px 12px;border-radius:10px;border:1px solid #c5a46e55;text-decoration:none;color:#e0b552" href="https://hosuman08-netizen.github.io/saju-miniapp/?utm_source=fate&utm_medium=cross&ref=fate_pipe">🔮 사주 Codex</a>' +
+    '<a style="display:inline-block;padding:8px 12px;border-radius:10px;border:1px solid #c5a46e55;text-decoration:none;color:#e0b552" href="https://hosuman08-netizen.github.io/tarot-oracle/?utm_source=fate&utm_medium=cross&ref=fate_pipe">🃏 타로</a>' +
+    '</div>';
+  try { if (window.legionTrack) legionTrack('money_pipe_shown', { app: 'fate', rarity: r && r.name, score: score }); } catch (e) {}
 }
 
 function saveToCodex(data) {
@@ -227,32 +251,60 @@ function shareFate() {
   console.log('%c[Internal] Fate Share → p20/21 Codex cross seed + K proxy', 'color:#666');
 }
 
+function fateDayKey(offset) {
+  var d = new Date(Date.now() + (offset || 0) * 864e5);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
 function bumpFateStreak() {
   try {
-    var day = new Date().toISOString().slice(0, 10);
+    var day = fateDayKey(0);
     var last = localStorage.getItem('fate_streak_day');
     var n = parseInt(localStorage.getItem('fate_streak') || '0', 10) || 0;
+    var shieldLast = localStorage.getItem('fate_streak_shield') || '';
     if (last !== day) {
-      var y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+      var y = fateDayKey(-1);
+      var y2 = fateDayKey(-2);
+      var froze = false;
+      // 1-day miss freeze once/7d if streak≥3
+      if (last && last !== y && last === y2 && n >= 3) {
+        var ready = !shieldLast || ((new Date(day) - new Date(shieldLast)) / 86400000) >= 7;
+        if (ready) {
+          localStorage.setItem('fate_streak_shield', day);
+          last = y;
+          froze = true;
+          try {
+            var tip = document.createElement('div');
+            tip.textContent = '🛡️ 연속 보호막 · ' + n + '일 유지';
+            tip.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#16121c;color:#e0b552;padding:10px 16px;border-radius:12px;z-index:9999;font-size:13px;border:1px solid #c5a46e55';
+            document.body.appendChild(tip);
+            setTimeout(function () { tip.remove(); }, 3000);
+          } catch (e2) {}
+          if (window.legionTrack) try { legionTrack('streak_freeze', { count: n }); } catch (e3) {}
+        }
+      }
       n = (last === y) ? n + 1 : 1;
       localStorage.setItem('fate_streak_day', day);
       localStorage.setItem('fate_streak', String(n));
+      if (window.legionTrack) try { legionTrack('streak', { count: n, froze: froze }); } catch (e) {}
     }
     renderFateStreak();
-    if (window.legionTrack) try { legionTrack('streak', { count: n }); } catch (e) {}
   } catch (e) {}
 }
 function renderFateStreak() {
   var el = document.getElementById('streak');
   if (!el) return;
   var n = parseInt(localStorage.getItem('fate_streak') || '0', 10) || 0;
+  var shieldLast = localStorage.getItem('fate_streak_shield') || '';
+  var day = fateDayKey(0);
+  var shieldReady = !shieldLast || ((new Date(day) - new Date(shieldLast)) / 86400000) >= 7;
   var codex = [];
   try { codex = JSON.parse(localStorage.getItem(CODEX_KEY) || '[]'); } catch (e) {}
   if (!codex.length && !n) {
     el.textContent = '아직 스트릭 없음 — 첫 추출로 시작';
     return;
   }
-  el.textContent = (n || 0) + '일 연속 · 기록 ' + codex.length + '개';
+  el.textContent = (n || 0) + '일 연속 · 기록 ' + codex.length + '개'
+    + (n >= 3 && shieldReady ? ' · 🛡️보호 1회' : '');
 }
 
 function init() {
