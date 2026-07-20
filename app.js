@@ -3,7 +3,7 @@
   var rates=[['LEGEND',5,'#fbbf24'] /* 전설 */,['EPIC',15,'#c4b5fd'],['RARE',30,'#67e8f9'],['COMMON',50,'#94a3b8']];
   var root=document.getElementById('app');
   var pity=+localStorage.getItem('fp_pity')||0; var pulls=+(localStorage.getItem('fp_pulls')||0); var hist=JSON.parse(localStorage.getItem('fp_hist')||'[]');
-  function pull(){
+  function pull(){ try{if(window.p10Skim)p10Skim(1);}catch(e){}
     var r=Math.random()*100, acc=0, got=rates[3];
     if(pity>=20){got=rates[0];pity=0;}
     else{for(var i=0;i<rates.length;i++){acc+=rates[i][1];if(r<acc){got=rates[i];break;}} if(got[0]==='LEGEND'){pity=0; try{if(navigator.vibrate)navigator.vibrate(40);}catch(e){}} else pity++;}
