@@ -67,7 +67,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       +'<p class="sub" id="pityBar" style="margin-top:8px">soft pity '+pity+'/20 · 총 '+pulls+'회 · '+(free?'🎁 일일 첫 추출 보너스 창':'이어서 추출')+'</p>'
       +'<p class="sub">확률 고지: L5% · E15% · R30% · C50% (코드 일치)</p>'
       +'<div style="height:8px;background:#1c1826;border-radius:6px;overflow:hidden;margin:8px 0"><i style="display:block;height:100%;width:'+(pity/20*100)+'%;background:linear-gradient(90deg,#67e8f9,#fbbf24)"></i></div>'
-      +'<button id="go">'+(free?'운명 추출 (일일 첫)':'운명 추출')+'</button> '
+      +'<button id="go">'+(free?'운명 추출 (일일 첫)':'운명 추출')+'</button> <button class="sec" id="undoPull">↩ 직전</button> '
       +'<button class="sec" id="share">공유</button> '
       +'<button class="sec" id="ratesCopy">확률 고지 복사</button>'
       +'<div id="res" style="margin-top:14px"></div>'
@@ -88,8 +88,22 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     if(!el)return;
     el.innerHTML=hist.length?'최근: '+hist.map(function(h){return '<span class="chip" style="margin:2px">'+h+'</span>';}).join(' '):'아직 추출 없음 — 첫 뽑기로 루프 시작';
   }
+  function undoPull(){
+    try{
+      var st=JSON.parse(localStorage.getItem('fp_last')||'null');
+      if(!st||!hist.length)return;
+      hist.shift(); localStorage.setItem('fp_hist',JSON.stringify(hist));
+      pity=st.pity; pulls=Math.max(0,pulls-1);
+      localStorage.setItem('fp_pity',pity); localStorage.setItem('fp_pulls',pulls);
+      if(st.legend){ legends=Math.max(0,legends-1); localStorage.setItem('fp_legends',legends); }
+      localStorage.removeItem('fp_last');
+      renderShell();
+      try{legionTrack('undo',{})}catch(e){}
+    }catch(e){}
+  }
   function pull(){
     try{if(window.p10Skim)p10Skim(1);}catch(e){}
+    var prevPity=pity;
     var r=Math.random()*100, acc=0, got=rates[3];
     if(pity>=20){got=rates[0];pity=0;}
     else{
@@ -98,6 +112,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       else pity++;
     }
     if(got[0]==='LEGEND'){legends++; localStorage.setItem('fp_legends',legends);}
+    try{localStorage.setItem('fp_last',JSON.stringify({pity: prevPity, legend: got[0]==='LEGEND'}));}catch(e){}
     localStorage.setItem('fp_pity',pity);
     pulls++; localStorage.setItem('fp_pulls',pulls); try{var td=JSON.parse(localStorage.getItem('fp_today')||'{}'); if(td.d!==new Date().toDateString()) td={d:new Date().toDateString(),n:0}; td.n=(td.n||0)+1; todayP=td.n; localStorage.setItem('fp_today',JSON.stringify(td));}catch(e){}
     hist.unshift(got[0]); hist=hist.slice(0,12); localStorage.setItem('fp_hist',JSON.stringify(hist));
@@ -123,6 +138,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   }
   function wire(){
     document.getElementById('go').onclick=pull;
+    var up=document.getElementById('undoPull'); if(up) up.onclick=undoPull;
     document.getElementById('share').onclick=doShare;
     var sp=document.getElementById('sharePeakBtn'); if(sp) sp.onclick=doShare;
     document.getElementById('ratesCopy').onclick=function(){
