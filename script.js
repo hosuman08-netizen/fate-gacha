@@ -56,16 +56,21 @@ function updateFomo() {
 
 function updateFateWindows() {
   const el = document.getElementById('fateWindows');
+  if (!el) return;
   const now = new Date();
-  const h = now.getHours();
-  let txt = '';
-  if (h < 8) txt = '🌅 새벽 창: +18% (8시 종료)';
-  else if (h < 14) txt = '☀️ 정오 창: +12% (14시 종료)';
-  else txt = '🌙 심야 창: +22% (내일 8시)';
+  const mins = now.getHours() * 60 + now.getMinutes();
+  let txt = '', endMin = 0, label = '';
+  if (mins < 8 * 60) { label = '🌅 새벽 창 +18%'; endMin = 8 * 60; }
+  else if (mins < 14 * 60) { label = '☀️ 정오 창 +12%'; endMin = 14 * 60; }
+  else { label = '🌙 심야 창 +22%'; endMin = 24 * 60; } // until midnight, next dawn at 8
+  const rem = endMin - mins;
+  const hh = Math.floor(rem / 60), mm = rem % 60;
+  txt = label + ` · ⏱ ${hh ? hh + '시간 ' : ''}${mm}분 남음`;
+  if (mins >= 14 * 60) txt += ' (다음 새벽 8시)';
   el.textContent = txt;
-  // FOMO limited banner
+  // FOMO limited banner — show once per session while a window is "closing soon" (<45m)
   const banner = document.getElementById('limitedBanner');
-  if (Math.random() > 0.65) banner.style.display = 'block';
+  if (banner && rem <= 45 && rem > 0) banner.style.display = 'block';
 }
 
 function getRarity(score) {
@@ -231,6 +236,7 @@ function init() {
   updateFomo();
   renderFateStreak();
   showCodex();
+  setInterval(function () { try { updateFateWindows(); } catch (e) {} }, 30000);
   // p6 lung already loaded via lung-surprise-eye.js
   // secret worldview check
   if (!localStorage.getItem('fateLayerSeeded')) {
