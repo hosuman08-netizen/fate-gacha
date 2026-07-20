@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fate Pull • 운명의 단일 추출</title>
+  <meta name="description" content="매일 운명을 뽑는다. 변수 비율 가챠. 재미로 보는 AI 엔터테인먼트.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <header>
+    <h1>Fate Pull</h1>
+    <p class="tag">하나의 풀. 변수가 모든 걸 결정한다.</p>
+    <div class="fomo" id="fomo">오늘 무료 1회 • base luck 100%</div>
+    <div id="fateWindows" style="font-size:0.7rem;margin:6px 0;color:#c99"></div>
+    <div id="limitedBanner" style="display:none;background:#1f1512;color:#e8b98a;padding:4px 10px;border:1px solid #7a5a3a;border-radius:999px;font-size:0.7rem;margin:6px auto;width:fit-content">🌑 한정 배너 활성화 (72h)</div>
+  </header>
+
+  <main>
+    <section id="pull">
+      <button onclick="doPull()" class="primary-cta" id="pullBtn">운명 추출하기</button>
+      <div class="result" id="result" style="display:none;">
+        <div id="rarity"></div>
+        <div id="desc"></div>
+        <div class="surprise" id="surprise"></div>
+        <button onclick="shareFate()" class="secondary">🌌 다른 Realm에 공유 (보너스 +1)</button>
+      </div>
+    </section>
+
+    <section id="codex">
+      <h2>운명 기록 — Codex Fragment</h2>
+      <div id="codexList"></div>
+      <button onclick="showCodex()" class="secondary">기록 보기 (강화)</button>
+    </section>
+  </main>
+
+  <nav class="cross" aria-label="cross">
+    <a href="#">p20 Codex</a>
+    <a href="#">p21 Tarot</a>
+  </nav>
+
+  <footer>
+    <small>FICTIONAL ENTERTAINMENT ONLY • NO CASH VALUE • 18+ • Prominent disclosure</small>
+  </footer>
+
+  <script src="lung-surprise-eye.js"></script>
+  <script src="script.js"></script>
+<script>window.LEGION_APP='fate-gacha';window.LEGION_ANALYTICS_URL='https://legion-analytics.hoyashi95.workers.dev';</script>
+<script src="legion-beacon.js"></script>
+</body>
+</html>

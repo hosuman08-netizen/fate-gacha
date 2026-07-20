@@ -1,0 +1,26 @@
+:root {
+  --bg:#0a0806; --gold:#c5a46e; --card:#12100d; --text:#f5f1e6; --dim:#8b6f47;
+  --grid:8px;
+}
+body { background:var(--bg); color:var(--text); font-family: system-ui, -apple-system, sans-serif; margin:0; padding:var(--grid); line-height:1.58; }
+header { text-align:center; margin-bottom:calc(var(--grid)*2.5); }
+h1 { font-size:2.1rem; margin:0; color:var(--gold); letter-spacing:-0.6px; }
+.tag { font-size:0.78rem; color:#a38a66; }
+.fomo { background:#15120f; padding:4px 12px; border-radius:999px; display:inline-block; font-size:0.72rem; margin-top:var(--grid); border:1px solid var(--gold); }
+.result { background:#12100d; padding:calc(var(--grid)*1.5); border-radius:10px; border:1px solid #3a2f22; margin:calc(var(--grid)*1.5) 0; text-align:center; }
+#rarity { font-size:1.4rem; margin-bottom:8px; color:var(--gold); }
+#desc { font-size:0.95rem; line-height:1.4; }
+button { background:#c5a46e; color:#0a0806; border:none; padding:9px 15px; border-radius:5px; margin:4px; font-weight:600; font-size:0.9rem; cursor:pointer; transition:transform 120ms ease, filter 120ms ease; }
+button:hover { filter:brightness(1.05); transform:translateY(-1px); }
+button:active { transform:translateY(0); filter:brightness(0.96); }
+button.secondary { background:transparent; color:var(--gold); border:1px solid #3a2f22; font-weight:500; }
+button.secondary:hover { border-color:var(--gold); filter:none; }
+.primary-cta { box-shadow:0 0 0 0 rgba(197,164,110,0.5); animation:cta-breath 3.2s ease-in-out infinite; }
+@keyframes cta-breath { 0%,100%{ box-shadow:0 0 0 0 rgba(197,164,110,0.28); } 50%{ box-shadow:0 0 14px 1px rgba(197,164,110,0.22); } }
+@media (prefers-reduced-motion: reduce) { .primary-cta { animation:none; } }
+.surprise { font-size:0.82rem; color:#c5a46e; margin-top:var(--grid); }
+#codexList { font-size:0.82rem; margin:8px 0; }
+.cross { margin-top:calc(var(--grid)*3.5); text-align:center; display:flex; gap:calc(var(--grid)*2); justify-content:center; flex-wrap:wrap; }
+.cross a { color:var(--dim); font-size:0.72rem; text-decoration:none; opacity:0.75; }
+.cross a:hover { color:var(--gold); opacity:1; }
+footer { margin-top:calc(var(--grid)*4); text-align:center; font-size:0.64rem; opacity:0.58; }
