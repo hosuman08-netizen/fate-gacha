@@ -67,7 +67,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       +'<p class="sub" id="pityBar" style="margin-top:8px">soft pity '+pity+'/20 · 총 '+pulls+'회 · '+(free?'🎁 일일 첫 추출 보너스 창':'이어서 추출')+'</p>'
       +'<p class="sub">확률 고지: L5% · E15% · R30% · C50% (코드 일치)</p>'
       +'<div style="height:8px;background:#1c1826;border-radius:6px;overflow:hidden;margin:8px 0"><i style="display:block;height:100%;width:'+(pity/20*100)+'%;background:linear-gradient(90deg,#67e8f9,#fbbf24)"></i></div>'
-      +'<button id="go">'+(free?'운명 추출 (일일 첫)':'운명 추출')+'</button> <button class="sec" id="undoPull">↩ 직전</button> '
+      +'<button id="go">'+(free?'운명 추출 (일일 첫)':'운명 추출')+'</button> <button class="sec" id="x5">5연</button> <button class="sec" id="undoPull">↩ 직전</button> '
       +'<button class="sec" id="share">공유</button> '
       +'<button class="sec" id="ratesCopy">확률 고지 복사</button>'
       +'<div id="res" style="margin-top:14px"></div>'
@@ -138,6 +138,37 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   }
   function wire(){
     document.getElementById('go').onclick=pull;
+    var x5=document.getElementById('x5');
+    if(x5) x5.onclick=function(){
+      var got=[];
+      for(var n=0;n<5;n++){
+        // inline one pull without full re-render until end
+        try{if(window.p10Skim)p10Skim(1);}catch(e){}
+        var prevPity=pity;
+        var r=Math.random()*100, acc=0, g=rates[3];
+        if(pity>=20){g=rates[0];pity=0;}
+        else{
+          for(var i=0;i<rates.length;i++){acc+=rates[i][1];if(r<acc){g=rates[i];break;}}
+          if(g[0]==='LEGEND'){pity=0;} else pity++;
+        }
+        if(g[0]==='LEGEND'){legends++; localStorage.setItem('fp_legends',legends);}
+        try{localStorage.setItem('fp_last',JSON.stringify({pity: prevPity, legend: g[0]==='LEGEND'}));}catch(e){}
+        localStorage.setItem('fp_pity',pity);
+        pulls++; localStorage.setItem('fp_pulls',pulls);
+        hist.unshift(g[0]); got.push(g[0]);
+        bumpToday();
+      }
+      hist=hist.slice(0,12); localStorage.setItem('fp_hist',JSON.stringify(hist));
+      bumpStreak();
+      renderShell();
+      document.getElementById('res').innerHTML='<div style="font-size:18px;font-weight:700">5연: '+got.join(' · ')+'</div>'
+        +'<p class="sub">soft pity '+pity+'/20 · 가상 · 확률 고지 L5 E15 R30 C50</p>';
+      try{legionTrack('activate',{multi:5,got:got})}catch(e){}
+      if(got.indexOf('LEGEND')>=0||got.indexOf('EPIC')>=0){
+        var sp=document.getElementById('sharePeak'); if(sp) sp.style.display='block';
+        try{legionTrack('share_peak_shown',{multi:5})}catch(e){}
+      }
+    };
     var up=document.getElementById('undoPull'); if(up) up.onclick=undoPull;
     document.getElementById('share').onclick=doShare;
     var sp=document.getElementById('sharePeakBtn'); if(sp) sp.onclick=doShare;
