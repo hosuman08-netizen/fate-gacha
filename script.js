@@ -123,6 +123,9 @@ function doPull() {
     freeLeft--;
     localStorage.setItem('fateFomo', new Date().toDateString());
     updateFomo();
+    bumpFateStreak();
+    offerSharePeak(r, score);
+    if (window.legionTrack) try { legionTrack('activate', { kind: 'pull', rarity: r.name, score: score }); } catch (e) {}
 
     btn.disabled = false;
     btn.textContent = '다시 추출';
@@ -134,12 +137,18 @@ function saveToCodex(data) {
   codex.unshift(data);
   if (codex.length > 12) codex.pop();
   localStorage.setItem(CODEX_KEY, JSON.stringify(codex));
+  showCodex();
 }
 
 function showCodex() {
   const list = document.getElementById('codexList');
+  if (!list) return;
   const codex = JSON.parse(localStorage.getItem(CODEX_KEY) || '[]');
-  if (!codex.length) { list.textContent = '아직 기록 없음. 첫 풀을 뽑아라.'; return; }
+  if (!codex.length) {
+    list.innerHTML = '<div class="empty-cta"><p>아직 기록 없음.<br>첫 운명을 뽑으면 여기에 쌓입니다.</p>'
+      + '<button type="button" class="primary-cta" onclick="document.getElementById(\'pullBtn\').click()">운명 추출하기</button></div>';
+    return;
+  }
   list.innerHTML = codex.map(c => 
     `<div style="margin:4px 0;padding:4px 8px;border-left:2px solid #c5a46e"> ${c.rarity} ${c.score} • ${new Date(c.ts).toLocaleTimeString()} <span style="opacity:0.5">(${c.layer})</span></div>`
   ).join('');
@@ -147,19 +156,23 @@ function showCodex() {
   console.log('%c[Internal] Codex viewed → relic power +1 (secret)', 'color:#555');
 }
 
-// 3H peak share fate
-function peakShareFate(){
-  try {
-    var k='fate_peak_'+new Date().toISOString().slice(0,10);
-    if (sessionStorage.getItem(k)) return;
-    sessionStorage.setItem(k,'1');
-    setTimeout(function(){
-      var b=document.querySelector('button.secondary, button[onclick*=shareFate]');
-      if (b) { b.style.boxShadow='0 0 0 2px #e8b98a'; b.textContent='📤 지금 공유하면 보너스'; }
-      if (window.legionTrack) legionTrack('peak_share_prompt',{});
-    }, 500);
-  } catch(e){}
+const SHARE_URL = 'https://hosuman08-netizen.github.io/fate-gacha/';
+
+function offerSharePeak(r, score) {
+  const peak = document.getElementById('sharePeak');
+  if (!peak) return;
+  const rare = r && (r.name === 'LEGEND' || r.name === 'EPIC');
+  peak.hidden = false;
+  peak.innerHTML = '<p>✨ ' + (rare
+    ? (r.name + ' 직후 — 지금 공유하면 보너스 +1 풀')
+    : '결과가 나왔어요 — 친구에게 한 장 보내볼까요?') + '</p>'
+    + '<button type="button" class="primary-cta" onclick="shareFate();if(window.legionTrack)try{legionTrack(\'share_peak\')}catch(e){}">📤 지금 공유</button> '
+    + '<button type="button" class="secondary" onclick="document.getElementById(\'sharePeak\').hidden=true">나중에</button>';
+  const b = document.getElementById('shareFateBtn');
+  if (b) { b.style.boxShadow = '0 0 0 2px #e8b98a'; b.textContent = '📤 지금 공유하면 보너스'; }
+  if (window.legionTrack) try { legionTrack('share_peak_shown', { rarity: r && r.name, score: score }); } catch (e) {}
 }
+
 function shareFate() {
   const codex = JSON.parse(localStorage.getItem(CODEX_KEY) || '[]');
   if (!codex.length) return alert('먼저 풀을 뽑아.');
@@ -168,13 +181,56 @@ function shareFate() {
   freeLeft = Math.min(3, freeLeft + 1);
   localStorage.setItem('fateFomo', new Date().toDateString());
   updateFomo();
-  alert('다른 Realm에 공유됨. +1 pull (보너스 적용)');
+  try {
+    localStorage.setItem('p22_fate_to_p20', JSON.stringify({ score: latest.score, rarity: latest.rarity, ts: Date.now() }));
+    localStorage.setItem('niobe_k_fate', String((parseInt(localStorage.getItem('niobe_k_fate') || '0', 10) || 0) + 1));
+  } catch (e) {}
+  const text = 'Fate Pull · ' + latest.rarity + ' (' + latest.score + ') 뽑았어요. 너도 한 번 뽑아봐 👀\n' + SHARE_URL + '\n#FatePull #운명';
+  if (window.legionTrack) try { legionTrack('share', { rarity: latest.rarity }); } catch (e) {}
+  if (navigator.share) {
+    navigator.share({ title: 'Fate Pull', text: text, url: SHARE_URL }).catch(function () {
+      if (navigator.clipboard) navigator.clipboard.writeText(text);
+    });
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function () { alert('복사됨 · 붙여넣어 공유 (+1 pull 적용)'); });
+  } else {
+    alert('공유됨. +1 pull 적용\n' + text);
+  }
   console.log('%c[Internal] Fate Share → p20/21 Codex cross seed + K proxy', 'color:#666');
-  // Niobe-style virality seed (secret)
+}
+
+function bumpFateStreak() {
+  try {
+    var day = new Date().toISOString().slice(0, 10);
+    var last = localStorage.getItem('fate_streak_day');
+    var n = parseInt(localStorage.getItem('fate_streak') || '0', 10) || 0;
+    if (last !== day) {
+      var y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+      n = (last === y) ? n + 1 : 1;
+      localStorage.setItem('fate_streak_day', day);
+      localStorage.setItem('fate_streak', String(n));
+    }
+    renderFateStreak();
+    if (window.legionTrack) try { legionTrack('streak', { count: n }); } catch (e) {}
+  } catch (e) {}
+}
+function renderFateStreak() {
+  var el = document.getElementById('streak');
+  if (!el) return;
+  var n = parseInt(localStorage.getItem('fate_streak') || '0', 10) || 0;
+  var codex = [];
+  try { codex = JSON.parse(localStorage.getItem(CODEX_KEY) || '[]'); } catch (e) {}
+  if (!codex.length && !n) {
+    el.textContent = '아직 스트릭 없음 — 첫 추출로 시작';
+    return;
+  }
+  el.textContent = (n || 0) + '일 연속 · 기록 ' + codex.length + '개';
 }
 
 function init() {
   updateFomo();
+  renderFateStreak();
+  showCodex();
   // p6 lung already loaded via lung-surprise-eye.js
   // secret worldview check
   if (!localStorage.getItem('fateLayerSeeded')) {
@@ -185,16 +241,3 @@ function init() {
 init();
 // Legion beacon soft hooks (FULLPOWER DNA)
 (function(){try{if(window.legionTrack){window.legionTrack('app_boot',{});}}catch(e){}})();
-
-// 3H fate streak
-(function fateStreak3H(){
-  try {
-    var day=new Date().toISOString().slice(0,10);
-    var last=localStorage.getItem('fate_streak_day');
-    var n=parseInt(localStorage.getItem('fate_streak')||'0',10);
-    if(last!==day){ var y=new Date(Date.now()-864e5).toISOString().slice(0,10); n=(last===y)?n+1:1;
-      localStorage.setItem('fate_streak_day',day); localStorage.setItem('fate_streak',String(n)); }
-    var el=document.getElementById('fomo');
-    if(el && n>1) el.textContent = (el.textContent||'') + ' · 🔥'+n+'d';
-  } catch(e){}
-})();

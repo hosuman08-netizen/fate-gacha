@@ -13,6 +13,7 @@
     <h1>Fate Pull</h1>
     <p class="tag">하나의 풀. 변수가 모든 걸 결정한다.</p>
     <div class="fomo" id="fomo">오늘 무료 1회 • base luck 100%</div>
+    <p class="streak" id="streak" aria-live="polite"></p>
     <div id="fateWindows" style="font-size:0.7rem;margin:6px 0;color:#c99"></div>
     <div id="limitedBanner" style="display:none;background:#1f1512;color:#e8b98a;padding:4px 10px;border:1px solid #7a5a3a;border-radius:999px;font-size:0.7rem;margin:6px auto;width:fit-content">🌑 한정 배너 활성화 (72h)</div>
   <p id="rates-line" style="text-align:center;font-size:11px;opacity:.75;margin:8px">확률 예시: LEGEND ~5% · EPIC ~15% · RARE ~30% · COMMON ~50% (가상·변동 가능) · 18+ 엔터테인먼트</p>
@@ -25,7 +26,8 @@
         <div id="rarity"></div>
         <div id="desc"></div>
         <div class="surprise" id="surprise"></div>
-        <button onclick="shareFate()" class="secondary">🌌 다른 Realm에 공유 (보너스 +1)</button>
+        <div id="sharePeak" class="share-peak" hidden></div>
+        <button onclick="shareFate()" class="secondary" id="shareFateBtn">🌌 다른 Realm에 공유 (보너스 +1)</button>
       </div>
     </section>
 
@@ -43,6 +45,10 @@
   </nav>
 
   <footer>
+    <nav class="foot-nav" aria-label="help">
+      <a href="mailto:hoyashi95@gmail.com?subject=%5BFate%20Pull%5D%20feedback">피드백</a>
+      <a href="https://hosuman08-netizen.github.io/legion-hub/">Arcade</a>
+    </nav>
     <small>FICTIONAL ENTERTAINMENT ONLY • NO CASH VALUE • 18+ • Prominent disclosure</small>
   </footer>
 

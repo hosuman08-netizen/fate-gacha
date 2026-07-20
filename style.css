@@ -7,6 +7,13 @@ header { text-align:center; margin-bottom:calc(var(--grid)*2.5); }
 h1 { font-size:2.1rem; margin:0; color:var(--gold); letter-spacing:-0.6px; }
 .tag { font-size:0.78rem; color:#a38a66; }
 .fomo { background:#15120f; padding:4px 12px; border-radius:999px; display:inline-block; font-size:0.72rem; margin-top:var(--grid); border:1px solid var(--gold); }
+.streak { margin:6px 0 0; font-size:0.74rem; color:#a38a66; min-height:1.1em; }
+.share-peak { margin:10px 0; padding:10px; border:1px solid var(--gold); border-radius:8px; background:#15120f; }
+.share-peak p { margin:0 0 8px; font-size:0.84rem; }
+.empty-cta { text-align:center; padding:14px 8px; border:1px dashed #3a2f22; border-radius:8px; color:#a38a66; font-size:0.86rem; }
+.foot-nav { display:flex; gap:16px; justify-content:center; margin-bottom:8px; }
+.foot-nav a { color:var(--dim); font-size:0.72rem; text-decoration:none; }
+.foot-nav a:hover { color:var(--gold); }
 .result { background:#12100d; padding:calc(var(--grid)*1.5); border-radius:10px; border:1px solid #3a2f22; margin:calc(var(--grid)*1.5) 0; text-align:center; }
 #rarity { font-size:1.4rem; margin-bottom:8px; color:var(--gold); }
 #desc { font-size:0.95rem; line-height:1.4; }
