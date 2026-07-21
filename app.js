@@ -29,8 +29,9 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       }
       st.count=(st.last===y)?(st.count||0)+1:1;
       st.last=t;
+      st.best=Math.max(st.best||0, st.count||0);
       localStorage.setItem('fp_streak',JSON.stringify(st));
-      try{legionTrack('streak',{count:st.count,froze:froze})}catch(e){}
+      try{legionTrack('streak',{count:st.count,best:st.best,froze:froze})}catch(e){}
       return st;
     }catch(e){return {count:0};}
   }
@@ -60,11 +61,15 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   function renderShell(){
     var st=JSON.parse(localStorage.getItem('fp_streak')||'{}');
     var sc=st.count||0;
+    var best=Math.max(st.best||0, sc);
     var ready=!st.shieldLast||((new Date(dayKey(0))-new Date(st.shieldLast||0))/86400000)>=7;
     var free=freeLeft();
-    root.innerHTML='<div class="card" style="border-color:#fbbf2444"><b>18+</b> Fictional gacha · 실금 아님 · 컴프/세트강제 아님</div>'
-      +'<div class="card"><span class="chip">🔥 '+sc+'일'+(sc>=3&&ready?' 🛡️':'')+'</span> <span class="chip">오늘 '+todayPulls()+'회</span> <span class="chip">LEGEND '+legends+'</span> <span class="chip">리셋 '+fomoLeft()+'</span>'
-      +'<p class="sub" id="pityBar" style="margin-top:8px">soft pity '+pity+'/20 · 총 '+pulls+'회 · '+(free?'🎁 일일 첫 추출 보너스 창':'이어서 추출')+'</p>'
+    var p10c='';
+    try{ if(window.p10Bal) p10c=' <span class="chip">💳 p10 <b>'+p10Bal()+'</b></span>'; }catch(e){}
+    var near=pity>=15&&pity<20?' · 거의 LEGEND':'';
+    root.innerHTML='<div class="card" style="border-color:#fbbf2444"><b>18+</b> Fictional gacha · 실금 아님 · 컴프/세트강제 아님 · 가상크레딧 only</div>'
+      +'<div class="card"><span class="chip">🔥 '+sc+'일'+(sc>=3&&ready?' 🛡️':'')+'</span>'+(best>sc?' <span class="chip">최장 <b>'+best+'</b>일</span>':'')+' <span class="chip">오늘 '+todayPulls()+'회</span> <span class="chip">LEGEND '+legends+'</span> <span class="chip">리셋 '+fomoLeft()+'</span>'+p10c
+      +'<p class="sub" id="pityBar" style="margin-top:8px">soft pity '+pity+'/20'+near+' · 총 '+pulls+'회 · '+(free?'🎁 일일 첫 추출 보너스 창':'이어서 추출')+'</p>'
       +'<p class="sub">확률 고지: L5% · E15% · R30% · C50% (코드 일치)</p>'
       +'<div style="height:8px;background:#1c1826;border-radius:6px;overflow:hidden;margin:8px 0"><i style="display:block;height:100%;width:'+(pity/20*100)+'%;background:linear-gradient(90deg,#67e8f9,#fbbf24)"></i></div>'
       +'<button id="go">'+(free?'운명 추출 (일일 첫)':'운명 추출')+'</button> <button class="sec" id="x5">5연</button> <button class="sec" id="undoPull">↩ 직전</button> '
