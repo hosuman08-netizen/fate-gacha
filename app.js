@@ -33,10 +33,18 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     var d=new Date(); d.setDate(d.getDate()+(off||0));
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   }
-  function fomoLeft(){
-    var end=new Date(); end.setHours(24,0,0,0);
-    var ms=Math.max(0,end-Date.now());
-    return Math.floor(ms/3600000)+'h '+Math.floor((ms%3600000)/60000)+'m';
+  function resetLeft(now){
+    var t=now||Date.now();
+    var end=new Date(t); end.setHours(24,0,0,0);
+    var ms=Math.max(0,end-t);
+    return {ms:ms, h:Math.floor(ms/3600000), m:Math.floor((ms%3600000)/60000)};
+  }
+  function fomoLeft(now){
+    var r=resetLeft(now);
+    return r.h+'h '+r.m+'m';
+  }
+  function resetCountText(now){
+    return '3틱 자정 리셋 '+fomoLeft(now)+' · 추가뽑기 0 · 보상 0 · 세트강제 0';
   }
   function bumpStreak(){
     try{
@@ -164,6 +172,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       +'<b>뽑기 밖 오늘 창</b>'
       +'<p class="sub">로그인 패스형 3틱. 뽑기 아님. 완성 보상 0. 세트강제 0. 확률 L5 E15 R30 C50 불변.</p>'
       +dailyStrip(d)
+      +'<p class="sub" id="resetCount">'+resetCountText()+'</p>'
       +yestHtml()
       +'<div class="drow">'
       +'<button class="sec tick'+(d.walk?' on':'')+'" id="dWalk">'+(d.walk?'✓ ':'')+'오늘 렐름 산책 · '+b.name+'</button>'
@@ -171,6 +180,16 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       +'<button class="sec tick'+(d.album?' on':'')+'" id="dAlbum">'+(d.album?'✓ ':'')+'각인 한 장 보기 (수집강제 아님)</button>'
       +'</div>'
       +'<p class="sub">오늘 '+n+'/3 · 보상 없음 · 컴프 아님 · 추가뽑기 0 · 18+ 허구</p></div>';
+  }
+  var resetTimer=null;
+  function tickResetCount(){
+    var el=document.getElementById('resetCount');
+    if(!el) return;
+    el.textContent=resetCountText();
+  }
+  function armResetTick(){
+    if(resetTimer) return;
+    resetTimer=setInterval(tickResetCount, 30000);
   }
   function wireDaily(){
     var w=document.getElementById('dWalk');
@@ -184,6 +203,8 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       renderShell();
     };
     if(a) a.onclick=function(){ markDaily('album'); fpView='album'; renderShell(); };
+    tickResetCount();
+    armResetTick();
   }
   function albumHtml(){
     var a=loadAlbum();
@@ -444,6 +465,8 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     }
   }catch(e){}
   try{legionTrack('session_start',{})}catch(e){}
+  window.fpResetLeft=resetLeft;
+  window.fpResetCountText=resetCountText;
   renderShell();
 
 /* LEGION_WAVE_59_fomo_chip */
