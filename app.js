@@ -138,6 +138,13 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     return d;
   }
   function dailyDone(d){ return (d.walk?1:0)+(d.rates?1:0)+(d.album?1:0); }
+  function dailyStrip(d){
+    var keys=[['walk','산책'],['rates','확률'],['album','각인']];
+    var segs=keys.map(function(k){
+      return '<span class="dseg'+(d[k[0]]?' on':'')+'">'+k[1]+'</span>';
+    }).join('');
+    return '<div class="dstrip" id="dailyStrip" aria-label="오늘 3틱 '+dailyDone(d)+'/3">'+segs+'</div>';
+  }
   function dailyHtml(){
     var d=loadDaily();
     var n=dailyDone(d);
@@ -145,12 +152,13 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     return '<div class="card daily-out" id="dailyOut">'
       +'<b>뽑기 밖 오늘 창</b>'
       +'<p class="sub">로그인 패스형 3틱. 뽑기 아님. 완성 보상 0. 세트강제 0. 확률 L5 E15 R30 C50 불변.</p>'
+      +dailyStrip(d)
       +'<div class="drow">'
       +'<button class="sec tick'+(d.walk?' on':'')+'" id="dWalk">'+(d.walk?'✓ ':'')+'오늘 렐름 산책 · '+b.name+'</button>'
       +'<button class="sec tick'+(d.rates?' on':'')+'" id="dRates">'+(d.rates?'✓ ':'')+'확률고지 확인 L5 / E15 / R30 / C50</button>'
       +'<button class="sec tick'+(d.album?' on':'')+'" id="dAlbum">'+(d.album?'✓ ':'')+'각인 한 장 보기 (수집강제 아님)</button>'
       +'</div>'
-      +'<p class="sub">오늘 '+n+'/3 · 보상 없음 · 컴프 아님 · 18+ 허구</p></div>';
+      +'<p class="sub">오늘 '+n+'/3 · 보상 없음 · 컴프 아님 · 추가뽑기 0 · 18+ 허구</p></div>';
   }
   function wireDaily(){
     var w=document.getElementById('dWalk');
