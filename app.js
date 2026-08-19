@@ -86,6 +86,20 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     if(at) return '어제 첫틱 시각 '+firstTickClock(at)+' · 보기만 · 추가뽑기 0 · 세트강제 0';
     return '어제 첫틱 시각 없음 · 보기만 · 추가뽑기 0';
   }
+  function yestFirstTickAtDim(at){
+    if(arguments.length) return !at;
+    return !loadYestFirstTickAt();
+  }
+  function paintYestFirstTickAt(el){
+    el=el||document.getElementById('yestFirstTickAt');
+    if(!el) return false;
+    var at=loadYestFirstTickAt();
+    var dim=yestFirstTickAtDim(at);
+    el.textContent=yestFirstTickAtText();
+    el.classList.toggle('dim', dim);
+    el.setAttribute('aria-disabled', dim?'true':'false');
+    return dim;
+  }
   function firstTickClock(t){
     var d=new Date(t);
     return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
@@ -216,10 +230,11 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   function yestHtml(){
     var d=loadDailyOff(-1);
     var n=dailyDone(d);
+    var ydim=yestFirstTickAtDim();
     return '<div class="yest-out" id="yestOut">'
       +'<p class="sub">어제 '+n+'/3 · 보기만 · 추가뽑기 0 · 보상 0 · 세트강제 0</p>'
       +dailyStrip(d,'yestStrip','어제 3틱 '+n+'/3')
-      +'<p class="sub" id="yestFirstTickAt">'+yestFirstTickAtText()+'</p>'
+      +'<p class="sub'+(ydim?' dim':'')+'" id="yestFirstTickAt" aria-disabled="'+(ydim?'true':'false')+'">'+yestFirstTickAtText()+'</p>'
       +'</div>';
   }
   function dailyHtml(){
@@ -251,8 +266,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     if(ft) ft.textContent=firstTickText();
     var fa=document.getElementById('firstTickAt');
     if(fa) fa.textContent=firstTickAtText();
-    var yfa=document.getElementById('yestFirstTickAt');
-    if(yfa) yfa.textContent=yestFirstTickAtText();
+    paintYestFirstTickAt();
     if(dayKey(0)!==resetDay){
       resetDay=dayKey(0);
       renderShell();
@@ -545,6 +559,8 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   window.fpFirstTickClock=firstTickClock;
   window.fpLoadYestFirstTickAt=loadYestFirstTickAt;
   window.fpYestFirstTickAtText=yestFirstTickAtText;
+  window.fpYestFirstTickAtDim=yestFirstTickAtDim;
+  window.fpPaintYestFirstTickAt=paintYestFirstTickAt;
   window.fpMarkDaily=markDaily;
   renderShell();
 
