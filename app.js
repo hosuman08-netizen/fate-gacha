@@ -3,6 +3,17 @@
 try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw_p22_fate_gac_today_counter')||'{}');if(_o.d!==_dk)_o={d:_dk,n:0};_o.n=(_o.n||0)+1;localStorage.setItem('lw_p22_fate_gac_today_counter',JSON.stringify(_o));}catch(e){}
 (function(){
   var rates=[['LEGEND',5,'#fbbf24'],['EPIC',15,'#c4b5fd'],['RARE',30,'#67e8f9'],['COMMON',50,'#94a3b8']];
+  var REALMS=[
+    {id:'ash',name:'Ashfall Coast',line:'Tide relics whisper. Walk, then leave — no set to finish.'},
+    {id:'veil',name:'Veil Orchard',line:'Leaves remember a pull you have not taken.'},
+    {id:'well',name:'Echo Well',line:'A coin-shaped ripple. Odds stay L5 / E15 / R30 / C50.'},
+    {id:'ridge',name:'Star Ridge',line:'Wind counts pity without promising a collection.'},
+    {id:'marsh',name:'Lantern Marsh',line:'Lights blink. Collection is optional, never required.'},
+    {id:'gate',name:'Unfinished Gate',line:'Kompu is forbidden here. A beat, then you go.'}
+  ];
+  var fpView='pull';
+  var journal=[];
+  try{journal=JSON.parse(localStorage.getItem('fp_journal')||'[]');}catch(e){journal=[];}
   var root=document.getElementById('app');
   var pity=+localStorage.getItem('fp_pity')||0;
   var pulls=+(localStorage.getItem('fp_pulls')||0);
@@ -58,7 +69,76 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     // 1 free fictional pull/day then continue (entertainment)
     return todayPulls()===0;
   }
+  function bannerRealm(){
+    var d=new Date();
+    var i=(d.getFullYear()*372+d.getMonth()*31+d.getDate())%REALMS.length;
+    return REALMS[i];
+  }
+  function loadStamps(){
+    try{return JSON.parse(localStorage.getItem('fp_stamps')||'[]');}catch(e){return [];}
+  }
+  function stampBanner(rarity){
+    if(rarity!=='LEGEND'&&rarity!=='EPIC') return;
+    var b=bannerRealm();
+    var stamps=loadStamps();
+    stamps.unshift({id:b.id,name:b.name,r:rarity,d:dayKey(0),t:Date.now()});
+    stamps=stamps.slice(0,12);
+    try{localStorage.setItem('fp_stamps',JSON.stringify(stamps));}catch(e){}
+  }
+  function bannerHtml(){
+    var b=bannerRealm();
+    var stamps=loadStamps();
+    var todayN=0;
+    for(var i=0;i<stamps.length;i++) if(stamps[i].d===dayKey(0)) todayN++;
+    var chips=stamps.slice(0,4).map(function(s){return '<span class="chip">'+s.name+' · '+s.r+'</span>';}).join(' ');
+    return '<div class="card" style="border-color:#fbbf2466">'
+      +'<b>오늘 창 · '+b.name+' 각인</b>'
+      +'<p class="sub">자정 리셋 · 확률 변동 없음 L5 / E15 / R30 / C50 · 컴프/세트강제 아님</p>'
+      +'<p class="sub">'+b.line+'</p>'
+      +'<p class="sub">LEGEND·EPIC이면 이 렐름 각인(수집 강제 없음)'+(todayN?' · 오늘 각인 '+todayN:'')+'</p>'
+      +(chips?'<div style="margin-top:6px">'+chips+'</div>':'')
+      +'</div>';
+  }
+  function navHtml(){
+    return '<div class="row" style="margin:0 0 10px">'+
+      '<button class="'+(fpView==='pull'?'':'sec')+'" id="tabPull">추출</button>'+
+      '<button class="'+(fpView==='explore'?'':'sec')+'" id="tabExplore">탐험</button></div>';
+  }
+  function wireNav(){
+    var a=document.getElementById('tabPull');
+    var b=document.getElementById('tabExplore');
+    if(a) a.onclick=function(){ fpView='pull'; renderShell(); };
+    if(b) b.onclick=function(){ fpView='explore'; renderShell(); };
+  }
+  function walkRealm(id){
+    var r=null;
+    for(var i=0;i<REALMS.length;i++) if(REALMS[i].id===id) r=REALMS[i];
+    if(!r) return;
+    journal.unshift({id:r.id,name:r.name,line:r.line,t:Date.now()});
+    journal=journal.slice(0,8);
+    try{localStorage.setItem('fp_journal',JSON.stringify(journal));}catch(e){}
+    bumpStreak();
+    try{legionTrack('explore',{id:r.id})}catch(e){}
+    renderShell();
+  }
+  function renderExplore(){
+    var walks=journal.map(function(j){return '<span class="chip">'+j.name+'</span>';}).join(' ')||'<span class="chip">아직 발자국 없음</span>';
+    root.innerHTML='<div class="card" style="border-color:#fbbf2444"><b>18+</b> Fictional gacha · 실금 아님 · 컴프/세트강제 아님 · 가상크레딧 only</div>'
+      +navHtml()
+      +'<div class="card"><p class="sub">세계 비트 · 뽑기 아닌 산책. 세트 완성 없음. 확률은 추출 탭에 고정.</p>'
+      +REALMS.map(function(r){
+        return '<div class="card" style="margin:8px 0"><b>'+r.name+'</b><p class="sub">'+r.line+'</p>'+
+          '<button class="sec" data-walk="'+r.id+'">들어가기</button></div>';
+      }).join('')
+      +'<p class="sub" style="margin-top:8px">최근 산책: '+walks+'</p></div>'
+      +'<p class="sub">확률 고지(추출과 동일): L5% · E15% · R30% · C50% · soft pity 20 · 컴프 아님</p>';
+    wireNav();
+    root.querySelectorAll('[data-walk]').forEach(function(btn){
+      btn.onclick=function(){ walkRealm(btn.getAttribute('data-walk')); };
+    });
+  }
   function renderShell(){
+    if(fpView==='explore'){ renderExplore(); return; }
     var st=JSON.parse(localStorage.getItem('fp_streak')||'{}');
     var sc=st.count||0;
     var best=Math.max(st.best||0, sc);
@@ -68,6 +148,8 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     try{ if(window.p10Bal) p10c=' <span class="chip">💳 p10 <b>'+p10Bal()+'</b></span>'; }catch(e){}
     var near=pity>=15&&pity<20?' · 거의 LEGEND':'';
     root.innerHTML='<div class="card" style="border-color:#fbbf2444"><b>18+</b> Fictional gacha · 실금 아님 · 컴프/세트강제 아님 · 가상크레딧 only</div>'
+      +navHtml()
+      +bannerHtml()
       +'<div class="card"><span class="chip">🔥 '+sc+'일'+(sc>=3&&ready?' 🛡️':'')+'</span>'+(best>sc?' <span class="chip">최장 <b>'+best+'</b>일</span>':'')+' <span class="chip">오늘 '+todayPulls()+'회</span> <span class="chip">LEGEND '+legends+'</span> <span class="chip">리셋 '+fomoLeft()+'</span>'+p10c
       +'<p class="sub" id="pityBar" style="margin-top:8px">soft pity '+pity+'/20'+near+' · 총 '+pulls+'회 · '+(free?'🎁 일일 첫 추출 보너스 창':'이어서 추출')+'</p>'
       +'<p class="sub">확률 고지: L5% · E15% · R30% · C50% (코드 일치)</p>'
@@ -87,6 +169,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       +'<a style="color:#e0b552;margin:0 6px" href="https://hosuman08-netizen.github.io/legion-hub/?utm_source=fate">🎮 Arcade</a></div>';
     paintHist();
     wire();
+    wireNav();
   }
   function paintHist(){
     var el=document.getElementById('histStrip');
@@ -117,18 +200,16 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       else pity++;
     }
     if(got[0]==='LEGEND'){legends++; localStorage.setItem('fp_legends',legends);}
+    stampBanner(got[0]);
     try{localStorage.setItem('fp_last',JSON.stringify({pity: prevPity, legend: got[0]==='LEGEND'}));}catch(e){}
     localStorage.setItem('fp_pity',pity);
     pulls++; localStorage.setItem('fp_pulls',pulls); try{var td=JSON.parse(localStorage.getItem('fp_today')||'{}'); if(td.d!==new Date().toDateString()) td={d:new Date().toDateString(),n:0}; td.n=(td.n||0)+1; todayP=td.n; localStorage.setItem('fp_today',JSON.stringify(td));}catch(e){}
     hist.unshift(got[0]); hist=hist.slice(0,12); localStorage.setItem('fp_hist',JSON.stringify(hist));
     bumpToday(); bumpStreak();
     var peak=got[0]==='LEGEND'||got[0]==='EPIC';
+    renderShell();
     document.getElementById('res').innerHTML='<div style="font-size:28px;color:'+got[2]+';font-weight:800">'+got[0]+'</div>'
       +'<p class="sub">soft pity 20=LEGEND 보정(컴프 아님) · pity '+pity+'/20 · 가상</p>';
-    var pb=document.getElementById('pityBar');
-    if(pb) pb.textContent='soft pity '+pity+'/20 · 총 '+pulls+'회 · 오늘 '+todayPulls()+'회';
-    paintHist();
-    var bar=root.querySelector('.card i'); if(bar) bar.style.width=(pity/20*100)+'%';
     var sp=document.getElementById('sharePeak');
     if(sp) sp.style.display=peak?'block':'none';
     try{legionTrack('activate',{r:got[0],pity:pity})}catch(e){}
@@ -157,6 +238,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
           if(g[0]==='LEGEND'){pity=0;} else pity++;
         }
         if(g[0]==='LEGEND'){legends++; localStorage.setItem('fp_legends',legends);}
+        stampBanner(g[0]);
         try{localStorage.setItem('fp_last',JSON.stringify({pity: prevPity, legend: g[0]==='LEGEND'}));}catch(e){}
         localStorage.setItem('fp_pity',pity);
         pulls++; localStorage.setItem('fp_pulls',pulls);
