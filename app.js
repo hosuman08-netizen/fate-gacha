@@ -11,6 +11,16 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     {id:'marsh',name:'Lantern Marsh',line:'Lights blink. Collection is optional, never required.'},
     {id:'gate',name:'Unfinished Gate',line:'Kompu is forbidden here. A beat, then you go.'}
   ];
+  var RELICS=[
+    {id:'ash-ember',name:'Ash Ember',shape:'ember'},
+    {id:'veil-seed',name:'Veil Seed',shape:'seed'},
+    {id:'well-coin',name:'Well Coin',shape:'coin'},
+    {id:'ridge-shard',name:'Ridge Shard',shape:'shard'},
+    {id:'marsh-wick',name:'Marsh Wick',shape:'wick'},
+    {id:'gate-hinge',name:'Gate Hinge',shape:'hinge'},
+    {id:'night-thread',name:'Night Thread',shape:'thread'},
+    {id:'tide-glass',name:'Tide Glass',shape:'glass'}
+  ];
   var fpView='pull';
   var journal=[];
   try{journal=JSON.parse(localStorage.getItem('fp_journal')||'[]');}catch(e){journal=[];}
@@ -85,6 +95,47 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     stamps=stamps.slice(0,12);
     try{localStorage.setItem('fp_stamps',JSON.stringify(stamps));}catch(e){}
   }
+  function loadAlbum(){
+    try{
+      var a=JSON.parse(localStorage.getItem('fp_album')||'{}');
+      return a&&typeof a==='object'&&!Array.isArray(a)?a:{};
+    }catch(e){return {};}
+  }
+  function grantRelic(rarity){
+    if(rarity!=='LEGEND'&&rarity!=='EPIC') return null;
+    var r=RELICS[pulls%RELICS.length];
+    var a=loadAlbum();
+    if(!a[r.id]) a[r.id]={n:0,t:0};
+    a[r.id].n+=1;
+    a[r.id].t=Date.now();
+    a[r.id].r=rarity;
+    try{localStorage.setItem('fp_album',JSON.stringify(a));}catch(e){}
+    return r.id;
+  }
+  function unggrantRelic(id){
+    if(!id) return;
+    var a=loadAlbum();
+    if(!a[id]) return;
+    a[id].n=Math.max(0,(a[id].n||0)-1);
+    if(!a[id].n) delete a[id];
+    try{localStorage.setItem('fp_album',JSON.stringify(a));}catch(e){}
+  }
+  function albumHtml(){
+    var a=loadAlbum();
+    var cards=RELICS.map(function(r){
+      var own=a[r.id];
+      var on=own&&own.n>0;
+      return '<div class="relic'+(on?' on':'')+'">'
+        +'<div class="relic-art '+r.shape+'" aria-hidden="true"></div>'
+        +'<b>'+r.name+'</b>'
+        +(on?'<span class="chip">'+(own.r||'')+'</span>':'<span class="chip">잠김</span>')
+        +'</div>';
+    }).join('');
+    return '<div class="card" id="album">'
+      +'<b>각인 아트 · 내 것</b>'
+      +'<p class="sub">8장은 보기용 아트. 세트 완성 보상 없음. 컴프/수집강제 아님. 확률 L5 E15 R30 C50 불변.</p>'
+      +'<div class="relic-grid">'+cards+'</div></div>';
+  }
   function bannerHtml(){
     var b=bannerRealm();
     var stamps=loadStamps();
@@ -102,13 +153,23 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   function navHtml(){
     return '<div class="row" style="margin:0 0 10px">'+
       '<button class="'+(fpView==='pull'?'':'sec')+'" id="tabPull">추출</button>'+
-      '<button class="'+(fpView==='explore'?'':'sec')+'" id="tabExplore">탐험</button></div>';
+      '<button class="'+(fpView==='explore'?'':'sec')+'" id="tabExplore">탐험</button>'+
+      '<button class="'+(fpView==='album'?'':'sec')+'" id="tabAlbum">각인</button></div>';
   }
   function wireNav(){
     var a=document.getElementById('tabPull');
     var b=document.getElementById('tabExplore');
+    var c=document.getElementById('tabAlbum');
     if(a) a.onclick=function(){ fpView='pull'; renderShell(); };
     if(b) b.onclick=function(){ fpView='explore'; renderShell(); };
+    if(c) c.onclick=function(){ fpView='album'; renderShell(); };
+  }
+  function renderAlbum(){
+    root.innerHTML='<div class="card" style="border-color:#fbbf2444"><b>18+</b> Fictional gacha · 실금 아님 · 컴프/세트강제 아님 · 가상크레딧 only</div>'
+      +navHtml()
+      +albumHtml()
+      +'<p class="sub">확률 고지(추출과 동일): L5% · E15% · R30% · C50% · soft pity 20 · 완성 보상 0</p>';
+    wireNav();
   }
   function walkRealm(id){
     var r=null;
@@ -139,6 +200,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   }
   function renderShell(){
     if(fpView==='explore'){ renderExplore(); return; }
+    if(fpView==='album'){ renderAlbum(); return; }
     var st=JSON.parse(localStorage.getItem('fp_streak')||'{}');
     var sc=st.count||0;
     var best=Math.max(st.best||0, sc);
@@ -184,6 +246,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       pity=st.pity; pulls=Math.max(0,pulls-1);
       localStorage.setItem('fp_pity',pity); localStorage.setItem('fp_pulls',pulls);
       if(st.legend){ legends=Math.max(0,legends-1); localStorage.setItem('fp_legends',legends); }
+      if(st.relic) unggrantRelic(st.relic);
       localStorage.removeItem('fp_last');
       renderShell();
       try{legionTrack('undo',{})}catch(e){}
@@ -201,9 +264,10 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     }
     if(got[0]==='LEGEND'){legends++; localStorage.setItem('fp_legends',legends);}
     stampBanner(got[0]);
-    try{localStorage.setItem('fp_last',JSON.stringify({pity: prevPity, legend: got[0]==='LEGEND'}));}catch(e){}
-    localStorage.setItem('fp_pity',pity);
     pulls++; localStorage.setItem('fp_pulls',pulls);
+    var relic=grantRelic(got[0]);
+    try{localStorage.setItem('fp_last',JSON.stringify({pity: prevPity, legend: got[0]==='LEGEND', relic: relic||null}));}catch(e){}
+    localStorage.setItem('fp_pity',pity);
     hist.unshift(got[0]);
     bumpToday();
     return got;
