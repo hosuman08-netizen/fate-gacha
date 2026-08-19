@@ -52,6 +52,30 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     if(n>0) return '첫 틱 완료 · 다음 틱 가능 · 추가뽑기 0 · 세트강제 0';
     return '자정 리셋 후 첫 틱 · 산책 대기 · 추가뽑기 0 · 컴프 0';
   }
+  function loadFirstTickAt(){
+    try{
+      var o=JSON.parse(localStorage.getItem('fp_first_tick')||'null');
+      if(!o||o.d!==dayKey(0)||!o.t) return null;
+      return +o.t;
+    }catch(e){return null;}
+  }
+  function saveFirstTickAt(t){
+    t=t||Date.now();
+    try{localStorage.setItem('fp_first_tick',JSON.stringify({d:dayKey(0),t:+t}));}catch(e){}
+    return +t;
+  }
+  function firstTickClock(t){
+    var d=new Date(t);
+    return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+  function firstTickAtText(d){
+    d=d||loadDaily();
+    var n=dailyDone(d);
+    var at=loadFirstTickAt();
+    if(n>0&&at) return '첫 틱 시각 '+firstTickClock(at)+' · 로컬 · 추가뽑기 0 · 세트강제 0';
+    if(n>0) return '첫 틱 시각 없음 · 로컬 · 추가뽑기 0';
+    return '첫 틱 시각 대기 · 자정 후 · 추가뽑기 0 · 컴프 0';
+  }
   function bumpStreak(){
     try{
       var st=JSON.parse(localStorage.getItem('fp_streak')||'{}');
@@ -147,8 +171,10 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   function markDaily(k){
     var d=loadDaily();
     if(d[k]) return d;
+    var was=dailyDone(d);
     d[k]=true;
     saveDaily(d);
+    if(was===0) saveFirstTickAt(Date.now());
     try{legionTrack('daily_out',{k:k})}catch(e){}
     return d;
   }
@@ -183,6 +209,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       +dailyStrip(d)
       +'<p class="sub" id="resetCount">'+resetCountText()+'</p>'
       +'<p class="sub" id="firstTick">'+firstTickText(d)+'</p>'
+      +'<p class="sub" id="firstTickAt">'+firstTickAtText(d)+'</p>'
       +yestHtml()
       +'<div class="drow">'
       +'<button class="sec tick'+(d.walk?' on':'')+(n===0?' first':'')+'" id="dWalk">'+(d.walk?'✓ ':'')+'오늘 렐름 산책 · '+b.name+'</button>'
@@ -199,6 +226,8 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     el.textContent=resetCountText();
     var ft=document.getElementById('firstTick');
     if(ft) ft.textContent=firstTickText();
+    var fa=document.getElementById('firstTickAt');
+    if(fa) fa.textContent=firstTickAtText();
     if(dayKey(0)!==resetDay){
       resetDay=dayKey(0);
       renderShell();
@@ -485,6 +514,11 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   window.fpResetLeft=resetLeft;
   window.fpResetCountText=resetCountText;
   window.fpFirstTickText=firstTickText;
+  window.fpFirstTickAtText=firstTickAtText;
+  window.fpLoadFirstTickAt=loadFirstTickAt;
+  window.fpSaveFirstTickAt=saveFirstTickAt;
+  window.fpFirstTickClock=firstTickClock;
+  window.fpMarkDaily=markDaily;
   renderShell();
 
 /* LEGION_WAVE_59_fomo_chip */
