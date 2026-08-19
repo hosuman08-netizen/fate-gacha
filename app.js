@@ -61,8 +61,30 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   }
   function saveFirstTickAt(t){
     t=t||Date.now();
-    try{localStorage.setItem('fp_first_tick',JSON.stringify({d:dayKey(0),t:+t}));}catch(e){}
+    var today=dayKey(0), yest=dayKey(-1), prev=null;
+    try{prev=JSON.parse(localStorage.getItem('fp_first_tick')||'null');}catch(e){}
+    var out={d:today,t:+t};
+    if(prev){
+      if(prev.d===yest&&prev.t){ out.yd=prev.d; out.yt=+prev.t; }
+      else if(prev.yd===yest&&prev.yt){ out.yd=prev.yd; out.yt=+prev.yt; }
+    }
+    try{localStorage.setItem('fp_first_tick',JSON.stringify(out));}catch(e){}
     return +t;
+  }
+  function loadYestFirstTickAt(){
+    try{
+      var o=JSON.parse(localStorage.getItem('fp_first_tick')||'null');
+      if(!o) return null;
+      var y=dayKey(-1);
+      if(o.yd===y&&o.yt) return +o.yt;
+      if(o.d===y&&o.t) return +o.t;
+      return null;
+    }catch(e){return null;}
+  }
+  function yestFirstTickAtText(){
+    var at=loadYestFirstTickAt();
+    if(at) return '어제 첫틱 시각 '+firstTickClock(at)+' · 보기만 · 추가뽑기 0 · 세트강제 0';
+    return '어제 첫틱 시각 없음 · 보기만 · 추가뽑기 0';
   }
   function firstTickClock(t){
     var d=new Date(t);
@@ -197,6 +219,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     return '<div class="yest-out" id="yestOut">'
       +'<p class="sub">어제 '+n+'/3 · 보기만 · 추가뽑기 0 · 보상 0 · 세트강제 0</p>'
       +dailyStrip(d,'yestStrip','어제 3틱 '+n+'/3')
+      +'<p class="sub" id="yestFirstTickAt">'+yestFirstTickAtText()+'</p>'
       +'</div>';
   }
   function dailyHtml(){
@@ -228,6 +251,8 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     if(ft) ft.textContent=firstTickText();
     var fa=document.getElementById('firstTickAt');
     if(fa) fa.textContent=firstTickAtText();
+    var yfa=document.getElementById('yestFirstTickAt');
+    if(yfa) yfa.textContent=yestFirstTickAtText();
     if(dayKey(0)!==resetDay){
       resetDay=dayKey(0);
       renderShell();
@@ -518,6 +543,8 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   window.fpLoadFirstTickAt=loadFirstTickAt;
   window.fpSaveFirstTickAt=saveFirstTickAt;
   window.fpFirstTickClock=firstTickClock;
+  window.fpLoadYestFirstTickAt=loadYestFirstTickAt;
+  window.fpYestFirstTickAtText=yestFirstTickAtText;
   window.fpMarkDaily=markDaily;
   renderShell();
 
