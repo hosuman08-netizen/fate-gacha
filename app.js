@@ -120,12 +120,13 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     if(!a[id].n) delete a[id];
     try{localStorage.setItem('fp_album',JSON.stringify(a));}catch(e){}
   }
-  function loadDaily(){
+  function loadDailyOff(off){
     try{
-      var o=JSON.parse(localStorage.getItem('fp_daily_'+dayKey(0))||'{}');
+      var o=JSON.parse(localStorage.getItem('fp_daily_'+dayKey(off||0))||'{}');
       return {walk:!!o.walk, rates:!!o.rates, album:!!o.album};
     }catch(e){return {walk:false, rates:false, album:false};}
   }
+  function loadDaily(){ return loadDailyOff(0); }
   function saveDaily(d){
     try{localStorage.setItem('fp_daily_'+dayKey(0),JSON.stringify({walk:!!d.walk, rates:!!d.rates, album:!!d.album}));}catch(e){}
   }
@@ -138,12 +139,22 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     return d;
   }
   function dailyDone(d){ return (d.walk?1:0)+(d.rates?1:0)+(d.album?1:0); }
-  function dailyStrip(d){
+  function dailyStrip(d, id, label){
     var keys=[['walk','산책'],['rates','확률'],['album','각인']];
     var segs=keys.map(function(k){
       return '<span class="dseg'+(d[k[0]]?' on':'')+'">'+k[1]+'</span>';
     }).join('');
-    return '<div class="dstrip" id="dailyStrip" aria-label="오늘 3틱 '+dailyDone(d)+'/3">'+segs+'</div>';
+    id=id||'dailyStrip';
+    label=label||('오늘 3틱 '+dailyDone(d)+'/3');
+    return '<div class="dstrip" id="'+id+'" aria-label="'+label+'">'+segs+'</div>';
+  }
+  function yestHtml(){
+    var d=loadDailyOff(-1);
+    var n=dailyDone(d);
+    return '<div class="yest-out" id="yestOut">'
+      +'<p class="sub">어제 '+n+'/3 · 보기만 · 추가뽑기 0 · 보상 0 · 세트강제 0</p>'
+      +dailyStrip(d,'yestStrip','어제 3틱 '+n+'/3')
+      +'</div>';
   }
   function dailyHtml(){
     var d=loadDaily();
@@ -153,6 +164,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       +'<b>뽑기 밖 오늘 창</b>'
       +'<p class="sub">로그인 패스형 3틱. 뽑기 아님. 완성 보상 0. 세트강제 0. 확률 L5 E15 R30 C50 불변.</p>'
       +dailyStrip(d)
+      +yestHtml()
       +'<div class="drow">'
       +'<button class="sec tick'+(d.walk?' on':'')+'" id="dWalk">'+(d.walk?'✓ ':'')+'오늘 렐름 산책 · '+b.name+'</button>'
       +'<button class="sec tick'+(d.rates?' on':'')+'" id="dRates">'+(d.rates?'✓ ':'')+'확률고지 확인 L5 / E15 / R30 / C50</button>'
