@@ -46,6 +46,12 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   function resetCountText(now){
     return '3틱 자정 리셋 '+fomoLeft(now)+' · 추가뽑기 0 · 보상 0 · 세트강제 0';
   }
+  function firstTickText(d){
+    d=d||loadDaily();
+    var n=dailyDone(d);
+    if(n>0) return '첫 틱 완료 · 다음 틱 가능 · 추가뽑기 0 · 세트강제 0';
+    return '자정 리셋 후 첫 틱 · 산책 대기 · 추가뽑기 0 · 컴프 0';
+  }
   function bumpStreak(){
     try{
       var st=JSON.parse(localStorage.getItem('fp_streak')||'{}');
@@ -149,11 +155,14 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   function dailyDone(d){ return (d.walk?1:0)+(d.rates?1:0)+(d.album?1:0); }
   function dailyStrip(d, id, label){
     var keys=[['walk','산책'],['rates','확률'],['album','각인']];
-    var segs=keys.map(function(k){
-      return '<span class="dseg'+(d[k[0]]?' on':'')+'">'+k[1]+'</span>';
+    var n=dailyDone(d);
+    var today=!(id && id!=='dailyStrip');
+    var segs=keys.map(function(k,i){
+      var first=(today && n===0 && i===0)?' first':'';
+      return '<span class="dseg'+(d[k[0]]?' on':'')+first+'">'+k[1]+'</span>';
     }).join('');
     id=id||'dailyStrip';
-    label=label||('오늘 3틱 '+dailyDone(d)+'/3');
+    label=label||('오늘 3틱 '+n+'/3');
     return '<div class="dstrip" id="'+id+'" aria-label="'+label+'">'+segs+'</div>';
   }
   function yestHtml(){
@@ -173,19 +182,27 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       +'<p class="sub">로그인 패스형 3틱. 뽑기 아님. 완성 보상 0. 세트강제 0. 확률 L5 E15 R30 C50 불변.</p>'
       +dailyStrip(d)
       +'<p class="sub" id="resetCount">'+resetCountText()+'</p>'
+      +'<p class="sub" id="firstTick">'+firstTickText(d)+'</p>'
       +yestHtml()
       +'<div class="drow">'
-      +'<button class="sec tick'+(d.walk?' on':'')+'" id="dWalk">'+(d.walk?'✓ ':'')+'오늘 렐름 산책 · '+b.name+'</button>'
+      +'<button class="sec tick'+(d.walk?' on':'')+(n===0?' first':'')+'" id="dWalk">'+(d.walk?'✓ ':'')+'오늘 렐름 산책 · '+b.name+'</button>'
       +'<button class="sec tick'+(d.rates?' on':'')+'" id="dRates">'+(d.rates?'✓ ':'')+'확률고지 확인 L5 / E15 / R30 / C50</button>'
       +'<button class="sec tick'+(d.album?' on':'')+'" id="dAlbum">'+(d.album?'✓ ':'')+'각인 한 장 보기 (수집강제 아님)</button>'
       +'</div>'
       +'<p class="sub">오늘 '+n+'/3 · 보상 없음 · 컴프 아님 · 추가뽑기 0 · 18+ 허구</p></div>';
   }
   var resetTimer=null;
+  var resetDay=dayKey(0);
   function tickResetCount(){
     var el=document.getElementById('resetCount');
     if(!el) return;
     el.textContent=resetCountText();
+    var ft=document.getElementById('firstTick');
+    if(ft) ft.textContent=firstTickText();
+    if(dayKey(0)!==resetDay){
+      resetDay=dayKey(0);
+      renderShell();
+    }
   }
   function armResetTick(){
     if(resetTimer) return;
@@ -467,6 +484,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
   try{legionTrack('session_start',{})}catch(e){}
   window.fpResetLeft=resetLeft;
   window.fpResetCountText=resetCountText;
+  window.fpFirstTickText=firstTickText;
   renderShell();
 
 /* LEGION_WAVE_59_fomo_chip */
