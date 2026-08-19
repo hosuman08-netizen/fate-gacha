@@ -120,6 +120,51 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     if(!a[id].n) delete a[id];
     try{localStorage.setItem('fp_album',JSON.stringify(a));}catch(e){}
   }
+  function loadDaily(){
+    try{
+      var o=JSON.parse(localStorage.getItem('fp_daily_'+dayKey(0))||'{}');
+      return {walk:!!o.walk, rates:!!o.rates, album:!!o.album};
+    }catch(e){return {walk:false, rates:false, album:false};}
+  }
+  function saveDaily(d){
+    try{localStorage.setItem('fp_daily_'+dayKey(0),JSON.stringify({walk:!!d.walk, rates:!!d.rates, album:!!d.album}));}catch(e){}
+  }
+  function markDaily(k){
+    var d=loadDaily();
+    if(d[k]) return d;
+    d[k]=true;
+    saveDaily(d);
+    try{legionTrack('daily_out',{k:k})}catch(e){}
+    return d;
+  }
+  function dailyDone(d){ return (d.walk?1:0)+(d.rates?1:0)+(d.album?1:0); }
+  function dailyHtml(){
+    var d=loadDaily();
+    var n=dailyDone(d);
+    var b=bannerRealm();
+    return '<div class="card daily-out" id="dailyOut">'
+      +'<b>뽑기 밖 오늘 창</b>'
+      +'<p class="sub">로그인 패스형 3틱. 뽑기 아님. 완성 보상 0. 세트강제 0. 확률 L5 E15 R30 C50 불변.</p>'
+      +'<div class="drow">'
+      +'<button class="sec tick'+(d.walk?' on':'')+'" id="dWalk">'+(d.walk?'✓ ':'')+'오늘 렐름 산책 · '+b.name+'</button>'
+      +'<button class="sec tick'+(d.rates?' on':'')+'" id="dRates">'+(d.rates?'✓ ':'')+'확률고지 확인 L5 / E15 / R30 / C50</button>'
+      +'<button class="sec tick'+(d.album?' on':'')+'" id="dAlbum">'+(d.album?'✓ ':'')+'각인 한 장 보기 (수집강제 아님)</button>'
+      +'</div>'
+      +'<p class="sub">오늘 '+n+'/3 · 보상 없음 · 컴프 아님 · 18+ 허구</p></div>';
+  }
+  function wireDaily(){
+    var w=document.getElementById('dWalk');
+    var r=document.getElementById('dRates');
+    var a=document.getElementById('dAlbum');
+    if(w) w.onclick=function(){ markDaily('walk'); walkRealm(bannerRealm().id); };
+    if(r) r.onclick=function(){
+      markDaily('rates');
+      var text='Fate rates L5% E15% R30% C50% · soft pity 20=LEGEND 보정 · fictional · no kompu · '+shareBase();
+      if(navigator.clipboard) navigator.clipboard.writeText(text);
+      renderShell();
+    };
+    if(a) a.onclick=function(){ markDaily('album'); fpView='album'; renderShell(); };
+  }
   function albumHtml(){
     var a=loadAlbum();
     var cards=RELICS.map(function(r){
@@ -169,6 +214,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       +navHtml()
       +albumHtml()
       +'<p class="sub">확률 고지(추출과 동일): L5% · E15% · R30% · C50% · soft pity 20 · 완성 보상 0</p>';
+    markDaily('album');
     wireNav();
   }
   function walkRealm(id){
@@ -178,6 +224,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     journal.unshift({id:r.id,name:r.name,line:r.line,t:Date.now()});
     journal=journal.slice(0,8);
     try{localStorage.setItem('fp_journal',JSON.stringify(journal));}catch(e){}
+    if(r.id===bannerRealm().id) markDaily('walk');
     bumpStreak();
     try{legionTrack('explore',{id:r.id})}catch(e){}
     renderShell();
@@ -212,6 +259,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     root.innerHTML='<div class="card" style="border-color:#fbbf2444"><b>18+</b> Fictional gacha · 실금 아님 · 컴프/세트강제 아님 · 가상크레딧 only</div>'
       +navHtml()
       +bannerHtml()
+      +dailyHtml()
       +'<div class="card"><span class="chip">🔥 '+sc+'일'+(sc>=3&&ready?' 🛡️':'')+'</span>'+(best>sc?' <span class="chip">최장 <b>'+best+'</b>일</span>':'')+' <span class="chip">오늘 '+todayPulls()+'회</span> <span class="chip">LEGEND '+legends+'</span> <span class="chip">리셋 '+fomoLeft()+'</span>'+p10c
       +'<p class="sub" id="pityBar" style="margin-top:8px">soft pity '+pity+'/20'+near+' · 총 '+pulls+'회 · '+(free?'🎁 일일 첫 추출 보너스 창':'이어서 추출')+'</p>'
       +'<p class="sub">확률 고지: L5% · E15% · R30% · C50% (코드 일치)</p>'
@@ -232,6 +280,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
     paintHist();
     wire();
     wireNav();
+    wireDaily();
   }
   function paintHist(){
     var el=document.getElementById('histStrip');
