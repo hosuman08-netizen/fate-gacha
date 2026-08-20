@@ -402,7 +402,7 @@ try{var _dk=new Date().toDateString();var _o=JSON.parse(localStorage.getItem('lw
       +'<div style="color:#e0b552;font-weight:700;margin-bottom:4px">💎 가상 엔터 · 크로스</div>'
       +'<a style="color:#ece8f1;margin:0 6px" href="https://hosuman08-netizen.github.io/tarot-oracle/?utm_source=fate">🃏 Tarot</a>'
       +'<a style="color:#ece8f1;margin:0 6px" href="https://hosuman08-netizen.github.io/echo-squad/?utm_source=fate">💥 Echo</a>'
-      +'<a style="color:#e0b552;margin:0 6px" href="https://hosuman08-netizen.github.io/legion-hub/?utm_source=fate">🎮 Arcade</a></div>';
+      +'</div>';
     paintHist();
     wire();
     wireNav();
