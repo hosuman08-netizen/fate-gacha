@@ -1,14 +1,12 @@
-// p22 Fate Gacha — Pure Variable Ratio in Fate Layer of Infinite Labyrinth
-// Internal: This is Fate-Layer Echo. Pulls birth Fate Spores to p20/21 Codex. Cross seed active.
-// Public: fictional entertainment only. Prominent disclosure below.
-// Full cheat: VR (Skinner), near-miss tease, pity ramp, FOMO x3 windows, endowment on Codex relics, loss on missed windows.
+// p22 Fate Gacha — fortune-pull mini-app. Fictional entertainment only, prominent disclosure below.
+// Cross-links with p20/p21 shared reading history (Codex).
 
 let freeLeft = 1;
 const CODEX_KEY = 'fateCodex';
 let pityStreak = parseInt(localStorage.getItem('fatePity') || '0');
 let baseLuck = parseFloat(localStorage.getItem('fateBaseLuck') || '1.0');
 
-const LilithPsych = {
+const OutcomeEngine = {
   resonance: 0.5,
   updateResonance() {
     const s = Math.random() * 0.6 + 0.3;
@@ -95,11 +93,11 @@ function doPull() {
     const descEl = document.getElementById('desc');
     const surpriseEl = document.getElementById('surprise');
 
-    LilithPsych.updateResonance();
+    OutcomeEngine.updateResonance();
     let base = 42 + Math.random() * 38;
-    let score = LilithPsych.variableOutcome(base);
+    let score = OutcomeEngine.variableOutcome(base);
     const isLow = score < 42;
-    score = LilithPsych.applyNearMissPity(score, isLow);
+    score = OutcomeEngine.applyNearMissPity(score, isLow);
 
     const r = getRarity(score);
     rarityEl.innerHTML = `<span style="color:${r.color}">${r.name}</span> <small>(${score})</small>`;
@@ -119,10 +117,6 @@ function doPull() {
     };
     saveToCodex(pullData);
 
-    // birth spore to other realms (internal)
-    if (Math.random() > 0.6) {
-      console.log('%c[Internal] Fate Spore born → Codex mutation active', 'color:#666');
-    }
 
     resEl.style.display = 'block';
     freeLeft--;
@@ -181,8 +175,6 @@ function showCodex() {
   list.innerHTML = codex.map(c => 
     `<div style="margin:4px 0;padding:4px 8px;border-left:2px solid #c5a46e"> ${c.rarity} ${c.score} • ${new Date(c.ts).toLocaleTimeString()} <span style="opacity:0.5">(${c.layer})</span></div>`
   ).join('');
-  // endowment: viewing strengthens
-  console.log('%c[Internal] Codex viewed → relic power +1 (secret)', 'color:#555');
 }
 
 const SHARE_BASE = 'https://hosuman08-netizen.github.io/fate-gacha/';
@@ -248,7 +240,6 @@ function shareFate() {
   } else {
     alert('공유됨. +1 pull 적용\n' + text);
   }
-  console.log('%c[Internal] Fate Share → p20/21 Codex cross seed + K proxy', 'color:#666');
 }
 
 function fateDayKey(offset) {
@@ -313,11 +304,8 @@ function init() {
   renderFateStreak();
   showCodex();
   setInterval(function () { try { updateFateWindows(); } catch (e) {} }, 30000);
-  // p6 lung already loaded via lung-surprise-eye.js
-  // secret worldview check
   if (!localStorage.getItem('fateLayerSeeded')) {
     localStorage.setItem('fateLayerSeeded', 'true');
-    console.log('%c[Secret] p22 Fate-Layer Echo seeded in Labyrinth. Cross to Codex ready.', 'color:#444');
   }
 }
 init();
