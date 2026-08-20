@@ -153,7 +153,7 @@ function showFateMoneyPipe(r, score) {
     '<div style="color:#e0b552;font-weight:700;margin-bottom:6px">' + (rare ? '✨ 희귀 직후 — 더 깊게' : '💎 운명 더 깊게') + '</div>' +
     '<p style="opacity:.8;font-size:12px;margin:0 0 8px">엔터테인먼트 · 확률 시뮬 · 운명 확정 아님</p>' +
     '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">' +
-    '<a style="display:inline-block;padding:8px 12px;border-radius:10px;border:1px solid #c5a46e55;text-decoration:none;color:#ece8f1" href="mailto:hoyashi95@gmail.com?subject=%5BFate%5D%20%ED%9B%84%EC%9B%90">☕ 후원 문의</a>' +
+    '' +
     '<button type="button" class="secondary" onclick="shareFate()">📤 공유 +1 풀</button>' +
     '<a style="display:inline-block;padding:8px 12px;border-radius:10px;border:1px solid #c5a46e55;text-decoration:none;color:#e0b552" href="https://hosuman08-netizen.github.io/saju-miniapp/?utm_source=fate&utm_medium=cross&ref=fate_pipe">🔮 사주 Codex</a>' +
     '<a style="display:inline-block;padding:8px 12px;border-radius:10px;border:1px solid #c5a46e55;text-decoration:none;color:#e0b552" href="https://hosuman08-netizen.github.io/tarot-oracle/?utm_source=fate&utm_medium=cross&ref=fate_pipe">🃏 타로</a>' +
